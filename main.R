@@ -19,10 +19,10 @@ rownames(miRNA)<-miRNA[,1]
 miRNA<-miRNA[,2:ncol(miRNA)]
 miRNA<-t(miRNA)
 
-# lncRNA<-read.table("BRCA/noncoding-1468-Normal.txt",header=T,as.is=T,sep="")
-# rownames(lncRNA)<-lncRNA[,1]
-# lncRNA<-lncRNA[,2:ncol(lncRNA)]
-# lncRNA<-t(lncRNA)
+lncRNA<-read.table("BRCA/noncoding-1468-Normal.txt",header=T,as.is=T,sep="")
+rownames(lncRNA)<-lncRNA[,1]
+lncRNA<-lncRNA[,2:ncol(lncRNA)]
+lncRNA<-t(lncRNA)
 
 
 #find the Markov Blanket of a particular miRNA: hsa-mir-200a

@@ -1,4 +1,4 @@
-readData<-function(condition,target){
+readData<-function(condition,lnc = F){
   translation<-read.table("BRCA/coding-11687-translation.csv",as.is=T)
   mRNA<-read.table(paste("BRCA/coding-11687-",condition,".txt",sep=""),header=T,as.is=T,sep="")
   rownames(mRNA)<-mRNA[,1]
@@ -11,20 +11,33 @@ readData<-function(condition,target){
   miRNA<-miRNA[,2:ncol(miRNA)]
   miRNA<-t(miRNA)
   
+ 
   
-  temp<-mRNA[,colSums(is.na(mRNA))==0] #remove columns with na and NaN
-  mir.200a<-miRNA[,"hsa-mir-200a"]
-  combine<-cbind(mir.200a,temp)
-  combine.df<-data.frame(combine) #combine miRNA with the expression profile of mRNAs
+  temp.mRNA<-mRNA[,colSums(is.na(mRNA))==0] #remove columns with na and NaN
+  temp.miRNA <- miRNA[,colSums(is.na(miRNA))==0]
+  if (lnc){
+    lncRNA<-read.table(paste("BRCA/noncoding-1468-",condition,".txt",sep=""),header=T,as.is=T,sep="")
+    rownames(lncRNA)<-lncRNA[,1]
+    lncRNA<-lncRNA[,2:ncol(lncRNA)]
+    lncRNA<-t(lncRNA)
+    temp.lncRNA <- lncRNA[,colSums(is.na(lncRNA))==0]
+    combine<-cbind(temp.miRNA,temp.lncRNA,temp.mRNA)
+  }
+  else{
+    combine<-cbind(temp.miRNA,temp.mRNA)
+  }
+  # print(colnames(lncRNA))
+
+#   combine.df<-data.frame(combine,check.names=F) #combine miRNA with the expression profile of mRNAs
   
-  return (combine.df)
+  return (combine)
 }
 
-local_discovery<-function(alpha=0.05,scale=T,target="hsa-mir-200a",condition,test=NULL){
+
+prepareData<-function(condition,scaling=T,lnc=F){
   if (condition == "all"){
-    print("all")
-    data1<-readData("Cancer",target)
-    data2<-readData("Normal",target)
+    data1<-readData("Cancer",lnc)
+    data2<-readData("Normal",lnc)
     #only retain those columns without NA in two conditions
     name1<-colnames(data1)
     name2<-colnames(data2)
@@ -34,23 +47,44 @@ local_discovery<-function(alpha=0.05,scale=T,target="hsa-mir-200a",condition,tes
     data<-rbind(data1,data2)
   }
   else{
-    print("else")
-    data<-readData(condition,target)
+    data<-readData(condition,lnc)
     
   }
-  if(scale){
-    data.scaled<-scale(data,scale=F)
-    data<-data.frame(data.scaled)
-  }
-  print("running mmpc")
-  mmpc<-bnlearn:::nbr.backend(data,"mir.200a",method='mmpc',alpha=alpha,test=test)
-  print("running hiton")
-  hiton<-bnlearn:::nbr.backend(data,"mir.200a",method='si.hiton.pc',alpha=alpha,test=test)
-#   print("running gs")
-#   gs<-bnlearn:::mb.backend(data,"mir.200a",method='gs',alpha=alpha)
-#   print("running iamb")
-#   iamb<-bnlearn:::mb.backend(data,"mir.200a",method='iamb',alpha=alpha)
-  
-  result<-list("mmpc"=mmpc,"hiton"=hiton)
+  data.scaled<-scale(data,scale=scaling)
+  data<-data.frame(data.scaled,check.names=F)
+
+  return(data)
+}
+
+
+readEMT<-function(file){
+  data<-read.table(paste("EMT/",file,sep=""),as.is = T, header = T,sep = ",")
+  return(data)
+}
+
+
+prepareEMT<-function(data,scale=T){
+  data.scaled <- scale(data,scale=scale)
+  data <- data.frame(data.scaled,check.names=F)
+}
+
+
+local_discovery<-function(data,target="hsa-mir-200a",alpha=0.05,scale=T,test=NULL,method=c("mmpc","si.hiton.pc")){
+  # print("running local discovery")
+  result<-bnlearn:::nbr.backend(data,target,method=method,alpha=alpha,test=test)
   return (result)
+}
+
+discovery_twice<-function(data,target="hsa-mir-200a",alpha=0.01,scale=T,test=NULL,method="mmpc"){
+  print("finding the parent and children of target variable")
+  result<-local_discovery(data,target=target,alpha=alpha,scale=scale,test=test,method=method)
+  print(result)
+  result2<-list()
+  for (i in 1:length(result)){
+    # print("finding the parent/children of parent/children of target variable")
+    new.target <- result[i]
+    print(new.target)
+    result2[[new.target]] <- local_discovery(data,target=new.target,alpha=alpha,scale=scale,test=test,method=method)
+  }
+  return (result2)
 }
