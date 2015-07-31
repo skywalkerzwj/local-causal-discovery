@@ -69,11 +69,18 @@ prepareEMT<-function(data,scale=T){
 }
 
 
-local_discovery<-function(data,target="hsa-mir-200a",alpha=0.05,scale=T,test=NULL,method=c("mmpc","si.hiton.pc")){
+local_discovery<-function(data,target="hsa-mir-200a",alpha=0.05,scale=T,test=NULL,method=c("mmpc","si.hiton.pc",
+                                                                                           "gs","iamb","fast.iamb")){
   # print("running local discovery")
-  result<-bnlearn:::nbr.backend(data,target,method=method,alpha=alpha,test=test)
+  if (method=="mmpc"|method=="si.hiton.pc"){
+    result<-bnlearn:::nbr.backend(data,target,method=method,alpha=alpha,test=test)
+  }
+  else{
+    result<-bnlearn:::mb.backend(data,target,method=method,alpha=alpha,test=test)
+  }
   return (result)
 }
+
 
 discovery_twice<-function(data,target="hsa-mir-200a",alpha=0.01,scale=T,test=NULL,method="mmpc"){
   print("finding the parent and children of target variable")
