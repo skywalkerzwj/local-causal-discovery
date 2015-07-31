@@ -58,7 +58,7 @@ prepareData<-function(condition,scaling=T,lnc=F){
 
 
 readEMT<-function(file){
-  data<-read.table(paste("EMT/",file,sep=""),as.is = T, header = T,sep = ",")
+  data<-read.table(paste("EMT/",file,sep=""),as.is = T, header = T,sep = ",",check.names=F)
   return(data)
 }
 
@@ -76,7 +76,7 @@ local_discovery<-function(data,target="hsa-mir-200a",alpha=0.05,scale=T,test=NUL
     result<-bnlearn:::nbr.backend(data,target,method=method,alpha=alpha,test=test)
   }
   else{
-    result<-bnlearn:::mb.backend(data,target,method=method,alpha=alpha,test=test,debug=T)
+    result<-bnlearn:::mb.backend(data,target,method=method,alpha=alpha,test=test,debug=F)
   }
   return (result)
 }

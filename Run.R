@@ -5,8 +5,16 @@ source("compareResult.R")
 data_lnc<-prepareData("all",scaling=T,lnc=T)
 data<-prepareData("all",scaling=T,lnc=F)
 
-local<-local_discovery(data,target="hsa-mir-200a",alpha=0.01,method = "mmpc")
-local_lnc<-local_discovery(data_lnc,target="hsa-mir-200a",alpha=0.01,method = "mmpc")
+
+EMT <- readEMT("EMT-35-translated.csv")
+EMT <- prepareEMT(EMT,T)
+
+mmpc_local<-local_discovery(data,target="hsa-mir-200a",alpha=0.01,method = "mmpc")
+mmpc_local_lnc<-local_discovery(data_lnc,target="hsa-mir-200a",alpha=0.01,method = "mmpc")
+iamb_local<-local_discovery(data,target="hsa-mir-200a",alpha=0.01,method = "iamb")
+iamb_local_lnc<-local_discovery(data_lnc,target="hsa-mir-200a",alpha=0.01,method = "iamb")
+
+
 result <- discovery_twice(data,target="hsa-mir-200a",alpha=0.01)
 result_lnc <- discovery_twice(data_lnc,target="hsa-mir-200a",alpha=0.01)
 
