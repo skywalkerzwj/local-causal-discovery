@@ -76,7 +76,7 @@ local_discovery<-function(data,target="hsa-mir-200a",alpha=0.05,scale=T,test=NUL
     result<-bnlearn:::nbr.backend(data,target,method=method,alpha=alpha,test=test)
   }
   else{
-    result<-bnlearn:::mb.backend(data,target,method=method,alpha=alpha,test=test)
+    result<-bnlearn:::mb.backend(data,target,method=method,alpha=alpha,test=test,debug=T)
   }
   return (result)
 }
